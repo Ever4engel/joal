@@ -1,8 +1,8 @@
-[![Build Status](https://travis-ci.org/anthonyraymond/joal.svg?branch=master)](https://travis-ci.org/anthonyraymond/joal)
-[![Coverage Status](https://coveralls.io/repos/github/anthonyraymond/joal/badge.svg?branch=master)](https://coveralls.io/github/anthonyraymond/joal?branch=master)
-
 # Disclamer
 JOAL is not designed to help or encourage you downloading illegal materials ! You must respect the law applicable in your country. I couldn't be held responsible for illegal activities performed by your usage of JOAL.
+
+## Official Docker Hub page:
+https://hub.docker.com/r/anthonyraymond/joal
 
 # JOAL
 This is the server application (with an **optional** webui), if you are interested in the desktop app look at [here](https://github.com/anthonyraymond/joal-desktop).
@@ -67,6 +67,21 @@ docker run -d \
     --joal.ui.path.prefix="SECRET_OBFUSCATION_PATH" \
     --joal.ui.secret-token="SECRET_TOKEN"
 ```
+Or the equivalent docker-compose service.
+```
+version: "2"
+services:
+  joal:
+    image: anthonyraymond/joal
+    container_name: joal
+    restart: unless-stopped
+    volumes:
+      - PATH_TO_CONF:/data
+    ports:
+      - PORT:PORT
+    command: ["--joal-conf=/data", "--spring.main.web-environment=true", "--server.port=PORT", "--joal.ui.path.prefix=SECRET_OBFUSCATION_PATH", "--joal.ui.secret-token=SECRET_TOKEN"]
+```
+
 Multiple architectures are available at https://hub.docker.com/r/anthonyraymond/joal.
 If you want to run on arm (raspberry) replace `anthonyraymond/joal` with `anthonyraymond/joal:X.X.X-arm` where X.X.X are the desired version of joal.
 
@@ -111,12 +126,15 @@ The application configuration belongs in `joal-conf/config.json`.
 
 Some non-supported browser might works, but they may be unsafe due to the lack of support for `referrer-policy`.
 
+
+## Community projects
+Those projects are maintained by their individual authors, if you have any question on how to use it use the corresponding repository to ask questions.
+- [Addon for Home Assistant](https://github.com/alexbelgium/hassio-addons/tree/master/joal) by [alexbelgium](https://github.com/alexbelgium) 
+
+
 # Thanks:
 This project use a modified version of the awesome [mpetazzoni/ttorrent](http://mpetazzoni.github.com/ttorrent/) library. Thanks to **mpetazzoni** for this.
 Also this project has benefited from the help of several peoples, see [Thanks.md](THANKS.md)
-
-## Official Docker Hub page:
-https://hub.docker.com/r/anthonyraymond/joal
 
 ## Supporters
 [![Thanks for providing Jetbrain license](readme-assets/jetbrains.svg)](https://www.jetbrains.com/?from=joal)

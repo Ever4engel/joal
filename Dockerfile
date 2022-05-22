@@ -1,21 +1,17 @@
 # Builder image with jdk
-FROM --platform=$BUILDPLATFORM maven:3.6-jdk-8 AS build
+FROM maven:3.8.3-eclipse-temurin-11 AS build
 
+WORKDIR /build
 
-RUN apt-get update \
-    && apt-get install -y git \
-    && JOAL_VERSION="2.1.22" \
-    && git clone https://github.com/anthonyraymond/joal.git --branch "$JOAL_VERSION" --depth=1 \
-    && cd joal \
-    && mvn --batch-mode --quiet package -DskipTests=true \
+COPY . /build/
+
+RUN mvn -B --quiet package -DskipTests=true \
     && mkdir /artifact \
-    && mv "/joal/target/jack-of-all-trades-$JOAL_VERSION.jar" /artifact/joal.jar \
-    && apt-get remove -y git \
-    && rm -rf /var/lib/apt/lists/*
+    && mv /build/target/jack-of-all-trades-*.jar /artifact/joal.jar
 
 
 # Actual joal image with jre only
-FROM openjdk:8u181-jre
+FROM eclipse-temurin:11.0.13_8-jre
 
 LABEL name="joal"
 LABEL maintainer="joal.contact@gmail.com"
