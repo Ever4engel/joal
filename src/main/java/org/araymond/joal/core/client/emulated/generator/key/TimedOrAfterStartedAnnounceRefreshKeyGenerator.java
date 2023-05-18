@@ -2,60 +2,40 @@ package org.araymond.joal.core.client.emulated.generator.key;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.annotations.VisibleForTesting;
 import com.turn.ttorrent.common.protocol.TrackerMessage.AnnounceRequestMessage.RequestEvent;
-import org.araymond.joal.core.client.emulated.TorrentClientConfigIntegrityException;
 import org.araymond.joal.core.client.emulated.generator.key.algorithm.KeyAlgorithm;
 import org.araymond.joal.core.client.emulated.utils.Casing;
 import org.araymond.joal.core.torrent.torrent.InfoHash;
 
 import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
 
 /**
  * Created by raymo on 16/07/2017.
  */
-public class TimedOrAfterStartedAnnounceRefreshKeyGenerator extends KeyGenerator {
-    @VisibleForTesting
-    LocalDateTime lastGeneration;
-    private String key;
-    private final Integer refreshEvery;
+public class TimedOrAfterStartedAnnounceRefreshKeyGenerator extends TimedRefreshKeyGenerator {
 
     @JsonCreator
     TimedOrAfterStartedAnnounceRefreshKeyGenerator(
-            @JsonProperty(value = "refreshEvery", required = true) final Integer refreshEvery,
+            @JsonProperty(value = "refreshEvery", required = true) final int refreshEvery,
             @JsonProperty(value = "algorithm", required = true) final KeyAlgorithm algorithm,
             @JsonProperty(value = "keyCase", required = true) final Casing keyCase
     ) {
-        super(algorithm, keyCase);
-        if (refreshEvery == null || refreshEvery < 1) {
-            throw new TorrentClientConfigIntegrityException("refreshEvery must be greater than 0.");
-        }
-        this.refreshEvery = refreshEvery;
-    }
-
-    @JsonProperty("refreshEvery")
-    Integer getRefreshEvery() {
-        return refreshEvery;
+        super(refreshEvery, algorithm, keyCase);
     }
 
     @Override
     public String getKey(final InfoHash infoHash, final RequestEvent event) {
-        if (this.shouldRegenerateKey()) {
+        if (super.shouldRegenerateKey()) {
             this.lastGeneration = LocalDateTime.now();
-            this.key = super.generateKey();
+            setKey(generateKey());
         }
 
-        final String key = this.key;
+        final String key = getKey();
 
         if (event == RequestEvent.STARTED) {
-            this.key = super.generateKey();
+            setKey(generateKey());
         }
 
         return key;
-    }
-
-    private boolean shouldRegenerateKey() {
-        return this.lastGeneration == null || ChronoUnit.SECONDS.between(this.lastGeneration, LocalDateTime.now()) >= this.refreshEvery;
     }
 }

@@ -2,84 +2,86 @@ package org.araymond.joal.core.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
+import lombok.extern.slf4j.Slf4j;
 import org.araymond.joal.core.SeedManager;
 import org.araymond.joal.core.events.config.ConfigHasBeenLoadedEvent;
 import org.araymond.joal.core.events.config.ConfigurationIsInDirtyStateEvent;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 
 import javax.inject.Provider;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 
+import static java.lang.String.format;
+import static java.nio.file.Files.isRegularFile;
+
 /**
+ * Handles the serialization & deserialization of our main app config file.
+ * <p/>
  * Created by raymo on 18/04/2017.
  */
+@Slf4j
 public class JoalConfigProvider implements Provider<AppConfiguration> {
-    private static final Logger logger = LoggerFactory.getLogger(JoalConfigProvider.class);
     private static final String CONF_FILE_NAME = "config.json";
 
-    private final Path joalConfPath;
+    private final Path joalConfFile;
     private final ObjectMapper objectMapper;
-    private AppConfiguration config = null;
-    private final ApplicationEventPublisher publisher;
+    private AppConfiguration config;
+    private final ApplicationEventPublisher appEventPublisher;
 
-    public JoalConfigProvider(final ObjectMapper objectMapper, final SeedManager.JoalFoldersPath joalFoldersPath, final ApplicationEventPublisher publisher) throws FileNotFoundException {
+    public JoalConfigProvider(final ObjectMapper objectMapper, final SeedManager.JoalFoldersPath joalFoldersPath,
+                              final ApplicationEventPublisher appEventPublisher) throws FileNotFoundException {
         this.objectMapper = objectMapper;
-        this.publisher = publisher;
+        this.appEventPublisher = appEventPublisher;
 
-        this.joalConfPath = joalFoldersPath.getConfPath().resolve(CONF_FILE_NAME);
-        if (!Files.exists(joalConfPath)) {
-            throw new FileNotFoundException(String.format("App configuration file '%s' not found.", joalConfPath));
+        this.joalConfFile = joalFoldersPath.getConfDirRootPath().resolve(CONF_FILE_NAME);
+        if (!isRegularFile(joalConfFile)) {
+            throw new FileNotFoundException(format("App configuration file [%s] not found", joalConfFile));
         }
 
-        if (logger.isDebugEnabled()) {
-            logger.debug("App configuration file will be searched for in {}", joalConfPath.toAbsolutePath());
-        }
+        log.debug("App configuration file will be searched for in [{}]", joalConfFile.toAbsolutePath());
     }
 
-    public void init() {
+    public AppConfiguration init() {
         this.config = this.loadConfiguration();
+        return this.config;
     }
 
     @Override
     public AppConfiguration get() {
         if (this.config == null) {
-            logger.error("App configuration has not been loaded yet.");
-            throw new IllegalStateException("Attempted to get configuration before init.");
+            log.error("App configuration has not been loaded yet");
+            throw new IllegalStateException("Attempted to get configuration before init");
         }
         return this.config;
     }
 
     @VisibleForTesting
     AppConfiguration loadConfiguration() {
-        final AppConfiguration configuration;
+        final AppConfiguration conf;
         try {
-            if (logger.isDebugEnabled()) {
-                logger.debug("Reading json configuration from '{}'.", joalConfPath.toAbsolutePath());
-            }
-            configuration = objectMapper.readValue(joalConfPath.toFile(), AppConfiguration.class);
-            logger.debug("Successfully red json configuration.");
+            log.debug("Reading json configuration from [{}]...", joalConfFile.toAbsolutePath());
+            conf = objectMapper.readValue(joalConfFile.toFile(), AppConfiguration.class);
+            log.debug("Successfully read json configuration");
         } catch (final IOException e) {
-            logger.error("Failed to read configuration file", e);
+            log.error("Failed to read configuration file", e);
             throw new IllegalStateException(e);
         }
-        logger.info("App configuration has been successfully loaded.");
-        this.publisher.publishEvent(new ConfigHasBeenLoadedEvent(configuration));
-        return configuration;
+
+        log.info("App configuration has been successfully loaded");
+        this.appEventPublisher.publishEvent(new ConfigHasBeenLoadedEvent(conf));
+        return conf;
     }
 
+    // TODO: verify that the new config ends up under this.config after saving new!
     public void saveNewConf(final AppConfiguration conf) {
         try {
-            objectMapper.writerWithDefaultPrettyPrinter().writeValue(joalConfPath.toFile(), conf);
-            publisher.publishEvent(new ConfigurationIsInDirtyStateEvent(conf));
+            objectMapper.writerWithDefaultPrettyPrinter().writeValue(joalConfFile.toFile(), conf);
+            appEventPublisher.publishEvent(new ConfigurationIsInDirtyStateEvent(conf));
         } catch (final IOException e) {
-            logger.error("Failed to write new configuration file", e);
+            log.error("Failed to write new configuration file", e);
             throw new IllegalStateException(e);
         }
     }
-
 }

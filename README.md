@@ -48,7 +48,7 @@ By default the web-ui is disabled, you can enable it with some more arguments:
 - `--joal.ui.secret-token="SECRET_TOKEN"`: use your own secret token here (this is some kind of a password, choose a complicated one).
 
 Once joal is started head to: `http://localhost:port/SECRET_OBFUSCATION_PATH/ui/` (obviously, replace `SECRET_OBFUSCATION_PATH`) by the value you had chosen
-The `joal.ui.path.prefix` might seems useless but it's actually **crucial** to set it as complex as possible to prevent peoples to know that joal is running on your server.
+The `joal.ui.path.prefix` might seems useless but it's actually **crucial** to set it as complex as possible to prevent people to know that joal is running on your server.
 
 If you want to use iframe you may also pass the `joal.iframe.enabled=true` argument. If you don't known what that is just ignore it.
 
@@ -60,7 +60,7 @@ docker run -d \
     -p PORT:PORT \
     -v PATH_TO_CONF:/data \
     --name="joal" \
-    anthonyraymond/joal \
+    anthonyraymond/joal:X.X.X \
     --joal-conf="/data" \
     --spring.main.web-environment=true \
     --server.port="PORT" \
@@ -72,7 +72,7 @@ Or the equivalent docker-compose service.
 version: "2"
 services:
   joal:
-    image: anthonyraymond/joal
+    image: anthonyraymond/joal:X.X.X
     container_name: joal
     restart: unless-stopped
     volumes:
@@ -82,8 +82,7 @@ services:
     command: ["--joal-conf=/data", "--spring.main.web-environment=true", "--server.port=PORT", "--joal.ui.path.prefix=SECRET_OBFUSCATION_PATH", "--joal.ui.secret-token=SECRET_TOKEN"]
 ```
 
-Multiple architectures are available at https://hub.docker.com/r/anthonyraymond/joal.
-If you want to run on arm (raspberry) replace `anthonyraymond/joal` with `anthonyraymond/joal:X.X.X-arm` where X.X.X are the desired version of joal.
+Replace the `X.X.X` in `anthonyraymond/joal:X.X.X` with the desired version of joal (all versions are available [here](https://hub.docker.com/r/anthonyraymond/joal/tags)).
 
 
 ## 3. Start seeding
@@ -124,7 +123,7 @@ The application configuration belongs in `joal-conf/config.json`.
 | ![Edge][browser-edge]               | ![no][support-no]       | Lack of `referrer-policy`                            |
 | ![Internet explorer][browser-ie]    | ![no][support-never]    | Not enough space to explain...                       |
 
-Some non-supported browser might works, but they may be unsafe due to the lack of support for `referrer-policy`.
+Some non-supported browser might work, but they may be unsafe due to the lack of support for `referrer-policy`.
 
 
 ## Community projects
@@ -135,7 +134,7 @@ Those projects are maintained by their individual authors, if you have any quest
 
 # Thanks:
 This project use a modified version of the awesome [mpetazzoni/ttorrent](http://mpetazzoni.github.com/ttorrent/) library. Thanks to **mpetazzoni** for this.
-Also this project has benefited from the help of several peoples, see [Thanks.md](THANKS.md)
+Also this project has benefited from the help of several people, see [Thanks.md](THANKS.md)
 
 ## Supporters
 [![Thanks for providing Jetbrain license](readme-assets/jetbrains.svg)](https://www.jetbrains.com/?from=joal)

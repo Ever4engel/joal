@@ -13,13 +13,13 @@ import org.araymond.joal.core.torrent.torrent.InfoHash;
 public class NeverRefreshKeyGenerator extends KeyGenerator {
 
     private final String key;
+
     @JsonCreator
     NeverRefreshKeyGenerator(
             @JsonProperty(value = "algorithm", required = true) final KeyAlgorithm algorithm,
             @JsonProperty(value = "keyCase", required = true) final Casing keyCase
     ) {
         super(algorithm, keyCase);
-
         this.key = generateKey();
     }
 
@@ -27,5 +27,4 @@ public class NeverRefreshKeyGenerator extends KeyGenerator {
     public String getKey(final InfoHash infoHash, final RequestEvent event) {
         return key;
     }
-
 }

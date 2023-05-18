@@ -1,32 +1,28 @@
 package org.araymond.joal.core.torrent.torrent;
 
-import com.google.common.base.Objects;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
 
+import java.util.regex.Pattern;
+
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+
+@ToString
+@EqualsAndHashCode(of = "infoHash")
+@Getter
 public class InfoHash {
     private final String infoHash;
+    private final String humanReadable;
+
+    private static final Pattern INVISIBLE_CTRL_CHARS_PTRN = Pattern.compile("\\p{C}");
 
     public InfoHash(final byte[] bytes) {
         this.infoHash = new String(bytes, MockedTorrent.BYTE_ENCODING);
-    }
-
-    public String humanReadableValue() {
-        return infoHash.replaceAll("\\p{C}", "");
+        this.humanReadable = INVISIBLE_CTRL_CHARS_PTRN.matcher(infoHash).replaceAll(EMPTY);
     }
 
     public String value() {
         return infoHash;
-    }
-
-    @Override
-    public boolean equals(final Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        final InfoHash infoHash1 = (InfoHash) o;
-        return Objects.equal(infoHash, infoHash1.infoHash);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hashCode(infoHash);
     }
 }
